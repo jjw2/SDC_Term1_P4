@@ -59,7 +59,7 @@ Road Images:
 
 
 ## 3. Thresholding
-To pick out lane lines, I tested several different combinations of sobel thresholding (magnitude, direction, etc) and color thresholding (red and HLS colorspaces) as covered in the Udacity classroom sessions. However, for the project video, I found that my trusty old HSV color selection utitliy - developed in the first project of this course and found [here](https://github.com/jjw2/SDC_Term1_P1) - worked great on its own!
+To pick out lane lines, I tested several different combinations of sobel thresholding (magnitude, direction, etc) and color thresholding (red and HLS colorspaces) as covered in the Udacity classroom sessions. However, for the project video, I found that my trusty old HSV color selection utility - developed in the first project of this course and found [here](https://github.com/jjw2/SDC_Term1_P1) - worked great on its own!
 
 Essentially, this function converts the subject image to the HSV color space, and applies a filter on each of the 3 channels to isolate yellow and white colors. It even does a decent job of picking out the lane lines on the concrete portions of the road, which is, obviously, where finding the lane lines is the hardest.
 
@@ -113,7 +113,7 @@ The function below implements a pixel search within a window around a previous p
 ## 6. Calculating Lane Curvature
 Once polynomials have been fitted to lane lines, curvature can be calculated. The calc_curv function uses a standard formula for calculating curvature of 2nd order polynomials. Note however, that we care about curvature in the real world. As a result, the polynomial fits that have been calculated must be converted into real-world coordinates. The calc_curv function performs this conversion using conversion factors - the number of meters per pixel in the perspective-transformed images above - that were calculated by hand based on known quantities -> the width of the lane, and the length of the dashed right lane line.
 
-Since curvature changes along the polynomial, the point at which curvature will be calculated must also be provided. In this case, since the calc_curv function operates in real world coordinates, it expects a value in meteres, starting from the top of the perspective-transformed images. Here, I'll be using a value of 20m, which is roughly the length of the segment of road shown in the perspective-transformed images (i.e.: calculating curvature at the position of the vehicle).
+Since curvature changes along the polynomial, the point at which curvature will be calculated must also be provided. In this case, since the calc_curv function operates in real world coordinates, it expects a value in meters, starting from the top of the perspective-transformed images. Here, I'll be using a value of 20m, which is roughly the length of the segment of road shown in the perspective-transformed images (i.e.: calculating curvature at the position of the vehicle).
 
 
 ## 7. Projecting Back to the Road
@@ -122,7 +122,7 @@ Now that the lane has been identified and lane lines have been found, we can pro
 ![alt text][image5]
 
 ## 8. Lane Position and Tracking
-The functions above all handle finding lane lines in a single image. Given that we're tracking lane lines in a video, we can use information from successive images to help smooth out our lane projections/estimates and also deal with cases where we're not able to detect lane lines in a given frame. In order to track lane lines over time, classes were created to processand store information.
+The functions above all handle finding lane lines in a single image. Given that we're tracking lane lines in a video, we can use information from successive images to help smooth out our lane projections/estimates and also deal with cases where we're not able to detect lane lines in a given frame. In order to track lane lines over time, classes were created to process and store information.
 
 A Line class was created to process store information about each lane line:
 - polynomial fit, with history
@@ -138,7 +138,7 @@ A LaneInfo class was created to store information specific to the lane:
 
 Within the LaneInfo class, the values of lane curvature and center line offset are rate limited, and a maximum limit is put on curvature. This was done for a couple reasons:
 1. to smooth the output values for curvature and lane offset, so that they're a little easier to read in the video (otherwise, then can jump around a lot from loop to loop, making the values difficult to read)
-2. radius of curvature goes to infinity as the road straightens out; putting a cap on the radius of curvature (at 10 km in this case) also makes the values easier to read, and allows for the rate limiting above (i.e.: it would be difficult to rate limit the values if they were going to infinity, as they could "wind up," which would result in large errors when transitioning from a straight road (infinite radisu of curvature) to a curved road.
+2. radius of curvature goes to infinity as the road straightens out; putting a cap on the radius of curvature (at 10 km in this case) also makes the values easier to read, and allows for the rate limiting above (i.e.: it would be difficult to rate limit the values if they were going to infinity, as they could "wind up," which would result in large errors when transitioning from a straight road (infinite radius of curvature) to a curved road.
 
 See the comments in each of these classes for more information.
 
@@ -151,7 +151,7 @@ The proc_img function implements the full image processing pipeline and stores i
     - a check of lane width
     - a check that the difference between successive curvatures isn't too great
 4. If the sanity check passes for both lines, report a successful fit and push the appropriate values to the history buffers
-5. If the sanity check failes for either line, report a failed fit instance, and don't push any values, meaning the last best values of fit, curvature, lane offset, etc, will be used for the current frame
+5. If the sanity check fails for either line, report a failed fit instance, and don't push any values, meaning the last best values of fit, curvature, lane offset, etc, will be used for the current frame
 6. Project the best fit of the lane down to the original image and print statistics on the image (curvature, center line offset)
 
 
@@ -173,13 +173,13 @@ As mentioned above, I think the most challenging aspect of the project as a whol
 
 The first step in this process, obviously, is picking out the lane line pixels from the image. While in the project video I was able to use my trusty color-selection utility to find the lane line pixels, this solution would probably struggle in other scenarios where the lane lines were not so clearly visible/detectable - even in this case, the method used struggled slightly on the concrete sections of this video. Additional testing using various approaches in various environments would most likely yield a more robust method for finding lane line pixels across the board. It may even be the case that different filters would have different levels of performance in different scenarios (sunny vs dark vs rainy vs concrete road vs asphalt, etc), and I could imagine running several different filters and comparing results, or perhaps having a high-level decision tree that selects an appropriate filter based on an analysis of current operating conditions.
 
-Even with the improvemnts noted above, it's unlikely that we'd find a method that could pick out only lane line pixels with absolute robustness in every frame of a video in every environment. Therefore, overall robustness could be improved by performing an analysis of the "confidence level" of a given pixel search. Here are some examples:
-- Simplest of all: assign a confidence based on the number of windows in which an appropriate number of lane line pixels were found in the sliding window search
+Even with the improvements noted above, it's unlikely that we'd find a method that could pick out only lane line pixels with absolute robustness in every frame of a video in every environment. Therefore, overall robustness could be improved by performing an analysis of the "confidence level" of a given pixel search. Here are some examples:
+- Simplest: assign a confidence based on the number of windows in which an appropriate number of lane line pixels were found in the sliding window search
 - Better: perform a statistical analysis of the distribution of found lane line pixels within a given window; this could provide information regarding how "cleanly" the lane line was picked out from the surrounding road. For example, right now, my algorithm is simply checking how many pixels were found within a given window; at the moment, however, the algorithm is not doing a check to analyze the likelihood that all of these pixels are part of the lane line. If they were all part of a line, we'd expect them to be clustered relatively close together, for example, rather than spread apart. One could use the mean and standard deviation or variance of a histogram of lane line pixels within a given window (or some other method) to assess the pixel distribution and determine the likelihood that the pixels actual form a line. The height of the windows in this case would need to be small (i.e.: not the whole image), as the curvature of the line within the window would affect pixel distribution, but in theory, this method would provide more information regarding the robustness of the pixel search.
-    - If a given pixle search was found to have a low level of confidence, it could be discarded, or potentially added to the lane history queue with an appropriate weighting factor
+    - If a given pixel search was found to have a low level of confidence, it could be discarded, or potentially added to the lane history queue with an appropriate weighting factor
 
 
 As far as tracking goes, at the moment, this algorithm is considering the line search a failure if one or both of the lines is not found or fails the sanity check. Given an appropriate estimate of the "confidence level" of a given found lane line (tracked over time, perhaps) the system could more robustly infer the position of the opposite line from a found line. For example, if only one line is found, but the confidence level associated with that lane line is high, one may infer the position/curvature of the opposite line. However, if one line is found with a low level of confidence, it may be prudent to ignore the result. Now, while I have been conservative in only using fits where both lines are found, it would be possible to implement something like this without a confidence level per lane line (i.e.: a simple sanity check is being performed), a confidence level tracking feature would surely add robustness to such an approach.
 
 
-Finally, though not possible in this project becasue the information is not available, this system would benefit greatly from information about the dynamics of the vehicle (ex: pitch, roll, vertical acceration, perhaps more). You can see in the video that the fit fails or doesn't quite fit the lanes when the car is going over bumps. In some cases, for example, the sanity check fails due to the calculated width of the lane exceeding the calibrated width (set in the LaneInfo class), which is due to changes in the orientation of the camera as the vehicle goes over a bump (ex: as the shocks compress after going over a bump, the camera moves closer to the ground, making the lane appear wider than when viewed from the standard camera position). Along the same lines, changes in pitch and/or roll affect the curvature calcuation.
+Finally, though not possible in this project because the information is not available, this system would benefit greatly from information about the dynamics of the vehicle (ex: pitch, roll, vertical acceleration, perhaps more). You can see in the video that the fit fails or doesn't quite fit the lanes when the car is going over bumps. In some cases, for example, the sanity check fails due to the calculated width of the lane exceeding the calibrated width (set in the LaneInfo class), which is due to changes in the orientation of the camera as the vehicle goes over a bump (ex: as the shocks compress after going over a bump, the camera moves closer to the ground, making the lane appear wider than when viewed from the standard camera position). Along the same lines, changes in pitch and/or roll affect the curvature calculation.
